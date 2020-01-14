@@ -39,7 +39,7 @@ kwargs = {
         'console_scripts': [
             'rocker = rocker.cli:main',
             'detect_docker_image_os = rocker.cli:detect_image_os',
-            'ghjekyll = rocker.ghjekyll:main',
+            'ghrocker = rocker.ghrocker:main',
 	    ],
         'rocker.extensions': [
             'dev_helpers = rocker.extensions:DevHelpers',
