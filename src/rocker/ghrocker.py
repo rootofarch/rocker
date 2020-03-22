@@ -26,6 +26,7 @@ def main():
 
     args = parser.parse_args()
     args_dict = vars(args)
+    args_dict['directory'] = os.path.abspath(args_dict['directory'])
 
     if args.build_only and args.baseurl:
         parser.error("build and baseurl options are incompatible")
