@@ -24,6 +24,10 @@ def main():
     # TODO(tfoote) add verbose parser.add_argument('--verbose', action='store_true')
 
 
+    plugins = list_plugins()
+    for p in plugins.values():
+        p.register_arguments(parser)
+
     args = parser.parse_args()
     args_dict = vars(args)
     args_dict['directory'] = os.path.abspath(args_dict['directory'])
