@@ -55,9 +55,9 @@ class RockerExtension(object):
         return ''
 
     @staticmethod
-    def get_name(self):
+    def get_name():
         raise NotImplementedError
-    
+
     def get_docker_args(self, cliargs):
         return ''
 
@@ -65,11 +65,32 @@ class RockerExtension(object):
         """ Return the cli argument result to use to detect if this plugin is active.
         This argument will be tested for true to determine if the plugin is active.
         By default it will use the name. """
-        return get_name()
+        return self.get_name()
 
     @staticmethod
-    def register_arguments(parser):
+    def register_arguments(parser, defaults={}):
         raise NotImplementedError
+
+
+class RockerExtensionManager:
+    def __init__(self):
+        self.available_plugins = list_plugins()
+    
+    def extend_cli_parser(self, parser, default_args={}):
+        for p in self.available_plugins.values():
+            try:
+                p.register_arguments(parser, default_args)
+            except TypeError as ex:
+                print("Extension %s doesn't support default arguemnts. Please extend it." % p.get_name())
+                p.register_arguments(parser)
+
+
+    def get_active_extensions(self, cli_args):
+        #TODO(tfoote) Don't doubly create e() in list comprehension
+        active_extensions = [e() for e in self.available_plugins.values() if cli_args.get(e().get_indicator_argument(), None)]
+        print(cli_args)
+        active_extensions.sort(key=lambda e:e.get_name().startswith('user'))
+        return active_extensions
 
 
 def get_docker_client():
@@ -196,10 +217,6 @@ class DockerImageGenerator(object):
 
         docker_args = ''
 
-        network = kwargs.get('network', False)
-        if network:
-            docker_args += ' --network %s ' % network
-
         devices = kwargs.get('devices', None)
         if devices:
             for device in devices:
@@ -209,6 +226,7 @@ class DockerImageGenerator(object):
                 docker_args += ' --device %s ' % device
 
         for e in self.active_extensions:
+            print("Getting cli args for %s" % e.get_name())
             docker_args += e.get_docker_args(self.cliargs)
 
         image = self.image_id
