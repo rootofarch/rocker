@@ -61,6 +61,12 @@ class RockerExtension(object):
     def get_docker_args(self, cliargs):
         return ''
 
+    def get_indicator_argument(self):
+        """ Return the cli argument result to use to detect if this plugin is active.
+        This argument will be tested for true to determine if the plugin is active.
+        By default it will use the name. """
+        return get_name()
+
     @staticmethod
     def register_arguments(parser):
         raise NotImplementedError
