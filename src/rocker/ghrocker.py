@@ -21,6 +21,7 @@ def main():
     parser.add_argument('-v', '--version', action='version',
         version='%(prog)s ' + get_rocker_version())
     parser.add_argument('--build-only', action='store_true')
+    parser.add_argument('--debug-inside', action='store_true')
     # TODO(tfoote) add verbose parser.add_argument('--verbose', action='store_true')
 
 
@@ -52,5 +53,8 @@ def main():
     if exit_code != 0:
         print("Build failed exiting")
         return exit_code
+
+    if args.debug_inside:
+        args_dict['command'] = 'bash'
 
     return dig.run(**args_dict)
