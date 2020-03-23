@@ -60,6 +60,35 @@ class DevHelpers(RockerExtension):
             default=defaults.get('dev_helpers', None),
             help="add development tools emacs and byobu to your environment")
 
+class Network(RockerExtension):
+    @staticmethod
+    def get_name():
+        return 'network'
+
+    def __init__(self):
+        self._env_subs = None
+        self.name = Network.get_name()
+
+
+    def get_environment_subs(self):
+        if not self._env_subs:
+            self._env_subs = {}
+        return self._env_subs
+
+    def get_preamble(self, cliargs):
+        return ''
+
+    def get_docker_args(self, cliargs):
+        args = ''
+        network = cliargs.get('network', None)
+        args += ' --network %s ' % network
+        return args
+
+    @staticmethod
+    def register_arguments(parser, defaults={}):
+        parser.add_argument('--network', choices=['bridge', 'host', 'overlay', 'none'],
+            default=defaults.get('network', None),
+            help="What network configuration to use.")
 
 class PulseAudio(RockerExtension):
     @staticmethod
