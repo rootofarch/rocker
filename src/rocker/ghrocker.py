@@ -1,14 +1,17 @@
-
 import argparse
+import os
+import shlex
 
 from .core import DockerImageGenerator
 from .core import get_rocker_version
-from .core import list_plugins
+from .core import RockerExtensionManager
 
 
 def main():
 
-    parser = argparse.ArgumentParser(description='A tool for building and testing gh-pages locally')
+    parser = argparse.ArgumentParser(
+        description='A tool for building and testing gh-pages locally',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('directory')
     #parser.add_argument('command', nargs='*', default='')
     parser.add_argument('--nocache', action='store_true',
@@ -25,9 +28,9 @@ def main():
     # TODO(tfoote) add verbose parser.add_argument('--verbose', action='store_true')
 
 
-    plugins = list_plugins()
-    for p in plugins.values():
-        p.register_arguments(parser)
+    extension_manager = RockerExtensionManager()
+    default_args = {'ghpages': True, 'user': True, 'network': 'host'}
+    extension_manager.extend_cli_parser(parser, default_args)
 
     args = parser.parse_args()
     args_dict = vars(args)
@@ -44,10 +47,11 @@ def main():
         if args.baseurl is not None:
             # Don't output to the default location if generating using a modified baseurl
             args_dict['command'] += ' --baseurl=\'{baseurl}\' -d /tmp/aliased_site'.format(**args_dict)
-    plugins = list_plugins()
-    required_plugins = ['ghpages', 'user']
-    gh_pages = [e() for e in plugins.values() if e.get_name() in required_plugins]
-    dig = DockerImageGenerator(gh_pages, args_dict, 'ubuntu:bionic')
+
+    active_extensions = extension_manager.get_active_extensions(args_dict)
+    print("Active extensions %s" % [e.get_name() for e in active_extensions])
+
+    dig = DockerImageGenerator(active_extensions, args_dict, 'ubuntu:bionic')
 
     exit_code = dig.build(**vars(args))
     if exit_code != 0:

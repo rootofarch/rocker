@@ -49,7 +49,8 @@ class GHPages(RockerExtension):
         return args
 
     @staticmethod
-    def register_arguments(parser):
-        parser.add_argument('--ssh',
+    def register_arguments(parser, defaults={}):
+        parser.add_argument('--ghpages',
             action='store_true',
-            help="Forward SSH agent into the container")
+            default=defaults.get('ghpages', False),
+            help="Setup environment for ghpages render with jekyll")
